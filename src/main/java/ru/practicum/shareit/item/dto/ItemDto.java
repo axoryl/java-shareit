@@ -9,7 +9,9 @@ import java.util.Objects;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Getter @Setter @ToString
+@Getter
+@Setter
+@ToString
 public class ItemDto {
 
     private Long id;

@@ -10,7 +10,9 @@ import java.util.Objects;
 
 @AllArgsConstructor
 @Builder
-@Getter @Setter @ToString
+@Getter
+@Setter
+@ToString
 public class UserDto {
 
     private Long id;

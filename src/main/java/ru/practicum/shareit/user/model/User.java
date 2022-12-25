@@ -7,7 +7,9 @@ import java.util.Objects;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Getter @Setter @ToString
+@Getter
+@Setter
+@ToString
 public class User {
 
     private Long id;
