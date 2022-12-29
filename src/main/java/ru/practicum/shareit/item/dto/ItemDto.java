@@ -1,17 +1,13 @@
 package ru.practicum.shareit.item.dto;
 
-import lombok.*;
+import lombok.Builder;
+import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import java.util.Objects;
 
-@AllArgsConstructor
-@NoArgsConstructor
+@Data
 @Builder
-@Getter
-@Setter
-@ToString
 public class ItemDto {
 
     private Long id;
@@ -24,17 +20,4 @@ public class ItemDto {
 
     @NotNull
     private Boolean available;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ItemDto itemDto = (ItemDto) o;
-        return Objects.equals(getId(), itemDto.getId());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(getId());
-    }
 }
