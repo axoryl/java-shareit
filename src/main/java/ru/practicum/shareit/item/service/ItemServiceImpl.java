@@ -171,7 +171,7 @@ public class ItemServiceImpl implements ItemService {
     private List<ItemInfoDto> setCommentAndBooking(final LocalDateTime currentTime,
                                                    final List<Booking> bookings,
                                                    final List<ItemInfoDto> itemsInfoDto,
-                                                   final List<Comment> comments){
+                                                   final List<Comment> comments) {
         for (ItemInfoDto item : itemsInfoDto) {
             final var lastBooking = bookings.stream()
                     .filter(o -> o.getItem().getId().equals(item.getId()))

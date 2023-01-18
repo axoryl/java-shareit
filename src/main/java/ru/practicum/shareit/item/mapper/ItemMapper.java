@@ -15,7 +15,7 @@ public class ItemMapper {
                 .available(item.getAvailable())
                 .build();
     }
-    
+
     public static ItemInfoDto mapToItemBookingDto(final Item item) {
         return ItemInfoDto.builder()
                 .id(item.getId())
