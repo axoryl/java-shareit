@@ -4,9 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import ru.practicum.shareit.exception.AccessDeniedException;
-import ru.practicum.shareit.exception.AlreadyExistsException;
-import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.exception.*;
 import ru.practicum.shareit.exception.model.ErrorResponse;
 
 @RestControllerAdvice
@@ -27,6 +25,18 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public ErrorResponse handleAccessDeniedException(final AccessDeniedException e) {
+        return new ErrorResponse(e.getMessage());
+    }
+
+    @ExceptionHandler({
+            IncorrectDateTimeException.class,
+            UnavailableException.class,
+            UnsupportedStateException.class,
+            StatusAlreadySetException.class,
+            ValidationException.class
+    })
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleBadRequestException(final RuntimeException e) {
         return new ErrorResponse(e.getMessage());
     }
 }

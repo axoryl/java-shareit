@@ -20,32 +20,33 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping("/{id}")
-    public UserDto findById(@PathVariable Long id) {
-        log.info("find user by id: " + id);
+    public UserDto findById(@PathVariable final Long id) {
+        log.info(">>FIND USER BY ID: [" + id + "]");
         return userService.findById(id);
     }
 
     @GetMapping
     public List<UserDto> findAll() {
-        log.info("find all users");
+        log.info(">>FIND ALL USERS");
         return userService.findAll();
     }
 
     @PostMapping
-    public UserDto save(@Validated(OnCreate.class) @RequestBody UserDto userDto) {
-        log.info("save user");
+    public UserDto save(@Validated(OnCreate.class) @RequestBody final UserDto userDto) {
+        log.info(">>SAVE USER: [" + userDto + "]");
         return userService.save(userDto);
     }
 
     @PatchMapping("/{id}")
-    public UserDto update(@PathVariable Long id, @Validated(OnUpdate.class) @RequestBody UserDto userDto) {
-        log.info("update user, id " + id);
+    public UserDto update(@PathVariable final Long id,
+                          @Validated(OnUpdate.class) @RequestBody final UserDto userDto) {
+        log.info(">>UPDATE USER, ID: [" + id + "]");
         return userService.update(id, userDto);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteById(@PathVariable Long id) {
-        log.info("delete user by id " + id);
+    public void deleteById(@PathVariable final Long id) {
+        log.info(">>DELETE USER BY ID: [" + id + "]");
         userService.deleteById(id);
     }
 }
