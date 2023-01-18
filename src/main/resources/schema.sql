@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS item
     description TEXT                                    NOT NULL,
     available   BOOLEAN                                 NOT NULL,
     CONSTRAINT pk_item_id PRIMARY KEY (item_id),
-    CONSTRAINT fk_owner_id FOREIGN KEY (owner_id) REFERENCES users (user_id) ON DELETE CASCADE
+    CONSTRAINT fk_item_owner_id FOREIGN KEY (owner_id) REFERENCES users (user_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS booking
@@ -32,8 +32,8 @@ CREATE TABLE IF NOT EXISTS booking
     booker_id  BIGINT                                  NOT NULL,
     status     VARCHAR(30) DEFAULT 'WAITING',
     CONSTRAINT pk_booking_id PRIMARY KEY (booking_id),
-    CONSTRAINT fk_item_id FOREIGN KEY (item_id) REFERENCES item (item_id) ON DELETE CASCADE,
-    CONSTRAINT fk_booker_id FOREIGN KEY (booker_id) REFERENCES users (user_id) ON DELETE CASCADE
+    CONSTRAINT fk_booking_item_id FOREIGN KEY (item_id) REFERENCES item (item_id) ON DELETE CASCADE,
+    CONSTRAINT fk_booking_booker_id FOREIGN KEY (booker_id) REFERENCES users (user_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS comment
@@ -44,6 +44,6 @@ CREATE TABLE IF NOT EXISTS comment
     author BIGINT NOT NULL,
     created TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     CONSTRAINT pk_comment_id PRIMARY KEY (comment_id),
-    CONSTRAINT fk_item_id FOREIGN KEY (item_id) REFERENCES item (item_id) ON DELETE CASCADE,
-    CONSTRAINT fk_author_id FOREIGN KEY (author) REFERENCES users (user_id) ON DELETE CASCADE
+    CONSTRAINT fk_comment_item_id FOREIGN KEY (item_id) REFERENCES item (item_id) ON DELETE CASCADE,
+    CONSTRAINT fk_comment_author_id FOREIGN KEY (author) REFERENCES users (user_id) ON DELETE CASCADE
 );
