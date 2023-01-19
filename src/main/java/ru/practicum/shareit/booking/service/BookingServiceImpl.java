@@ -176,7 +176,7 @@ public class BookingServiceImpl implements BookingService {
                 || !isApprove && booking.getStatus().equals(BookingStatus.REJECTED)) {
             throw new StatusAlreadySetException("Status of booking is already " + booking.getStatus());
         }
-        booking.setStatus(isApprove ? BookingStatus.APPROVED : BookingStatus.REJECTED);
+        booking.setStatus(Boolean.TRUE.equals(isApprove) ? BookingStatus.APPROVED : BookingStatus.REJECTED);
 
         return BookingMapper.mapToBookingDto(bookingRepository.save(booking));
     }
