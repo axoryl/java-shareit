@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +22,8 @@ import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.request.model.ItemRequest;
+import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.service.UserService;
 
@@ -39,12 +42,13 @@ public class ItemServiceImpl implements ItemService {
     private final UserService userService;
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
+    private final ItemRequestRepository itemRequestRepository;
 
     @Override
     public ItemInfoDto findById(final Long userId, final Long id) {
         final var itemInfoDto = ItemMapper.mapToItemBookingDto(itemRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Item not found")));
-        final List<CommentInfoDto> comments = CommentMapper.mapToCommentInfoDto(commentRepository.findAllByItemId(id));
+        final var comments = CommentMapper.mapToCommentInfoDto(commentRepository.findAllByItemId(id));
         itemInfoDto.setComments(comments);
 
         if (!itemInfoDto.getOwnerId().equals(userId)) {
@@ -52,17 +56,17 @@ public class ItemServiceImpl implements ItemService {
         }
 
         final var currentTime = LocalDateTime.now();
-        final List<Booking> bookings = bookingRepository.findAllByItemId(id,
-                Sort.by("start").descending());
+        final var bookings = bookingRepository.findAllByItemId(id, Sort.by("start").descending());
 
         return setBooking(currentTime, itemInfoDto, bookings);
     }
 
     @Override
-    public List<ItemInfoDto> findAllOwnerItems(final Long ownerId) {
+    public List<ItemInfoDto> findAllOwnerItems(final Long ownerId, final Integer from, final Integer size) {
         userService.findById(ownerId);
 
-        final List<ItemInfoDto> itemsInfoDto = itemRepository.findByOwnerId(ownerId).stream()
+        final var pageable = PageRequest.of(from / size, size, Sort.unsorted());
+        final var itemsInfoDto = itemRepository.findByOwnerId(ownerId, pageable).stream()
                 .sorted(Comparator.comparing(Item::getId))
                 .map(ItemMapper::mapToItemBookingDto)
                 .collect(Collectors.toList());
@@ -71,23 +75,24 @@ public class ItemServiceImpl implements ItemService {
                 .map(ItemInfoDto::getId)
                 .collect(Collectors.toList());
 
-        final List<Booking> bookings = bookingRepository.findAllByItemIdIn(itemIds,
+        final var bookings = bookingRepository.findAllByItemIdIn(itemIds,
                 Sort.by("start").descending());
-        final List<Comment> comments = commentRepository.findAllByItemIdIn(itemIds);
+        final var comments = commentRepository.findAllByItemIdIn(itemIds);
         final var currentTime = LocalDateTime.now();
 
         return setCommentAndBooking(currentTime, bookings, itemsInfoDto, comments);
     }
 
     @Override
-    public List<ItemCreationDto> search(final String text) {
+    public List<ItemCreationDto> search(final String text, final Integer from, final Integer size) {
         if (text == null || text.isBlank()) {
             return new ArrayList<>();
         }
 
         final var validText = text.toLowerCase().trim();
+        final var pageable = PageRequest.of(from / size, size, Sort.unsorted());
 
-        return itemRepository.search(validText)
+        return itemRepository.search(validText, pageable)
                 .stream()
                 .map(ItemMapper::mapToItemCreationDto)
                 .collect(Collectors.toList());
@@ -97,7 +102,17 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemCreationDto save(final Long ownerId, final ItemCreationDto itemCreationDto) {
         userService.findById(ownerId);
-        final var item = ItemMapper.mapToItem(itemCreationDto, ownerId);
+        final var requestId = itemCreationDto.getRequestId();
+        final ItemRequest request;
+
+        if (requestId != null) {
+            request = itemRequestRepository.findById(requestId)
+                    .orElseThrow(() -> new NotFoundException("Request not found"));
+        } else {
+            request = null;
+        }
+
+        final var item = ItemMapper.mapToItem(itemCreationDto, ownerId, request);
 
         return ItemMapper.mapToItemCreationDto(itemRepository.save(item));
     }
@@ -152,12 +167,12 @@ public class ItemServiceImpl implements ItemService {
                                    final ItemInfoDto itemInfoDto,
                                    final List<Booking> bookings) {
         final var lastBooking = bookings.stream()
-                .filter(o -> o.getStart().isBefore(currentTime))
+                .filter(booking -> booking.getStart().isBefore(currentTime))
                 .findFirst()
                 .map(BookingMapper::mapToBookingShortDto)
                 .orElse(null);
         final var nextBooking = bookings.stream()
-                .filter(o -> o.getEnd().isAfter(currentTime))
+                .filter(booking -> booking.getEnd().isAfter(currentTime))
                 .map(BookingMapper::mapToBookingShortDto)
                 .findFirst()
                 .orElse(null);
@@ -174,19 +189,19 @@ public class ItemServiceImpl implements ItemService {
                                                    final List<Comment> comments) {
         for (ItemInfoDto item : itemsInfoDto) {
             final var lastBooking = bookings.stream()
-                    .filter(o -> o.getItem().getId().equals(item.getId()))
-                    .filter(o -> o.getStart().isBefore(currentTime))
+                    .filter(booking -> booking.getItem().getId().equals(item.getId()))
+                    .filter(booking -> booking.getStart().isBefore(currentTime))
                     .map(BookingMapper::mapToBookingShortDto)
                     .findFirst()
                     .orElse(null);
             final var nextBooking = bookings.stream()
-                    .filter(o -> o.getItem().getId().equals(item.getId()))
-                    .filter(o -> o.getEnd().isAfter(currentTime))
+                    .filter(booking -> booking.getItem().getId().equals(item.getId()))
+                    .filter(booking -> booking.getEnd().isAfter(currentTime))
                     .map(BookingMapper::mapToBookingShortDto)
                     .findFirst()
                     .orElse(null);
             final var itemComments = comments.stream()
-                    .filter(o -> o.getItem().getId().equals(item.getId()))
+                    .filter(comment -> comment.getItem().getId().equals(item.getId()))
                     .map(CommentMapper::mapToCommentInfoDto)
                     .collect(Collectors.toList());
 

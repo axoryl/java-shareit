@@ -10,9 +10,9 @@ public interface BookingService {
 
     BookingDto findById(Long userId, Long bookingId);
 
-    List<BookingDto> findAllByState(Long userId, BookingState state);
+    List<BookingDto> findAllByState(Long userId, BookingState state, Integer from, Integer size);
 
-    List<BookingDto> findAllByStateForOwner(Long userId, BookingState state);
+    List<BookingDto> findAllByStateForOwner(Long userId, BookingState state, Integer from, Integer size);
 
     BookingDto save(Long userId, BookingCreationDto bookingCreationDto);
 

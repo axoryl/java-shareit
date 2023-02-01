@@ -1,5 +1,7 @@
 package ru.practicum.shareit.booking.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -12,7 +14,7 @@ import java.util.Optional;
 
 public interface BookingRepository extends JpaRepository<Booking, Long> {
 
-    List<Booking> findAllByBookerId(Long bookerId, Sort sort);
+    Page<Booking> findAllByBookerId(Long bookerId, Pageable pageable);
 
     @Query(" SELECT b " +
             "FROM Booking AS b " +
@@ -20,13 +22,15 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "AND b.start <= :time " +
             "AND b.end >= :time " +
             "ORDER BY b.start DESC")
-    List<Booking> findByCurrentTime(Long bookerId, LocalDateTime time);
+    Page<Booking> findByCurrentTime(Long bookerId, LocalDateTime time, Pageable pageable);
 
-    List<Booking> findByBookerIdAndStatus(Long bookerId, BookingStatus status, Sort sort);
+    Page<Booking> findByBookerIdAndStatus(Long bookerId, BookingStatus status, Pageable pageable);
 
-    List<Booking> findByBookerIdAndEndBefore(Long bookerId, LocalDateTime time, Sort sort);
+    Page<Booking> findByBookerIdAndEndBefore(Long bookerId, LocalDateTime time, Pageable pageable);
 
-    List<Booking> findByBookerIdAndStartAfter(Long bookerId, LocalDateTime time, Sort sort);
+    Page<Booking> findByBookerIdAndStartAfter(Long bookerId, LocalDateTime time, Pageable pageable);
+
+    Page<Booking> findAllByItemIdIn(List<Long> itemIds, Pageable pageable);
 
     List<Booking> findAllByItemIdIn(List<Long> itemIds, Sort sort);
 
@@ -36,13 +40,13 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "AND b.end >= :time " +
             "AND b.item.id IN (:itemIds) " +
             "ORDER BY b.start DESC")
-    List<Booking> findByCurrentTime(LocalDateTime time, List<Long> itemIds);
+    Page<Booking> findByCurrentTime(LocalDateTime time, List<Long> itemIds, Pageable pageable);
 
-    List<Booking> findByStatusAndItemIdIn(BookingStatus status, List<Long> itemIds, Sort sort);
+    Page<Booking> findByStatusAndItemIdIn(BookingStatus status, List<Long> itemIds, Pageable pageable);
 
-    List<Booking> findByEndBeforeAndItemIdIn(LocalDateTime time, List<Long> itemIds, Sort sort);
+    Page<Booking> findByEndBeforeAndItemIdIn(LocalDateTime time, List<Long> itemIds, Pageable pageable);
 
-    List<Booking> findByStartAfterAndItemIdIn(LocalDateTime time, List<Long> itemIds, Sort sort);
+    Page<Booking> findByStartAfterAndItemIdIn(LocalDateTime time, List<Long> itemIds, Pageable pageable);
 
     List<Booking> findAllByItemId(Long itemId, Sort sort);
 
