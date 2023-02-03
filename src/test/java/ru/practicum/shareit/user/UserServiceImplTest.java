@@ -2,30 +2,30 @@ package ru.practicum.shareit.user;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.AlreadyExistsException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.dto.UserDto;
-import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 import ru.practicum.shareit.user.service.UserServiceImpl;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
+import static ru.practicum.shareit.user.mapper.UserMapper.mapToUser;
 import static ru.practicum.shareit.user.mapper.UserMapper.mapToUserDto;
 
 @Transactional
-@ContextConfiguration(classes = UserMapper.class)
 @ExtendWith(MockitoExtension.class)
 public class UserServiceImplTest {
 
@@ -33,118 +33,159 @@ public class UserServiceImplTest {
     private UserRepository userRepository;
     @InjectMocks
     private UserServiceImpl userService;
+    @Captor
+    private ArgumentCaptor<User> userArgumentCaptor;
 
     @Test
-    void updateUser_whenInvoked_thenReturnedUser() {
-        final var userToUpdate = User.builder()
-                .id(1L)
-                .name("new name")
-                .email("new_email@t.com")
-                .build();
-        final var foundUser = User.builder()
-                .id(userToUpdate.getId())
-                .name("name")
-                .email("email@t.com")
-                .build();
+    void findUserById_whenInvoked_thenReturnedUser() {
+        final var expectedUser = getUser();
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(expectedUser));
 
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(foundUser));
-        when(userRepository.save(userToUpdate)).thenReturn(userToUpdate);
+        final var actualUser = userService.findById(anyLong());
 
-        final var actualUser = userService.update(anyLong(), mapToUserDto(userToUpdate));
-
-        assertEquals(userToUpdate.getId(), actualUser.getId());
-        assertEquals(userToUpdate.getName(), actualUser.getName());
-        assertEquals(userToUpdate.getEmail(), actualUser.getEmail());
-
-        verify(userRepository).save(userToUpdate);
+        assertEquals(mapToUserDto(expectedUser), actualUser);
+        verify(userRepository).findById(anyLong());
     }
 
     @Test
-    void updateUser_whenUserNameIsNull_thenReturnedUser() {
-        final var userToUpdate = User.builder()
-                .id(1L)
-                .name(null)
-                .email("updated_email@t.com")
-                .build();
-        final var foundUser = User.builder()
-                .id(1L)
-                .name("name")
-                .email("email@t.com")
-                .build();
-        final var expectedUser = User.builder()
-                .id(foundUser.getId())
-                .name(foundUser.getName())
-                .email(userToUpdate.getEmail())
-                .build();
+    void findUserById_whenUserNotFound_thenNotFoundExceptionThrown() {
+        when(userRepository.findById(anyLong())).thenReturn(Optional.empty());
 
+        NotFoundException notFoundException = assertThrows(NotFoundException.class,
+                () -> userService.findById(anyLong()));
+
+        assertEquals(notFoundException.getMessage(), "User does not exist");
+    }
+
+    @Test
+    void findAllUsers_whenInvoked_thenReturnedUsers() {
+        final var expectedUsers = List.of(getUser());
+        when(userRepository.findAll()).thenReturn(expectedUsers);
+
+        final var actualUsers = userService.findAll();
+
+        assertEquals(expectedUsers.size(), actualUsers.size());
+        verify(userRepository).findAll();
+    }
+
+    @Test
+    void saveUser_whenInvoked_thenSavedAndReturnedUser() {
+        final var userToSave = getUser();
+        when(userRepository.save(userToSave)).thenReturn(userToSave);
+
+        final var savedUser = userService.save(mapToUserDto(userToSave));
+
+        assertEquals(userToSave.getName(), savedUser.getName());
+        assertEquals(userToSave.getEmail(), savedUser.getEmail());
+
+        verify(userRepository).save(any());
+    }
+
+    @Test
+    void updateUser_whenInvoked_thenUpdatedAndReturnedUser() {
+        final var foundUser = getUser();
+        final var userToUpdate = getUser();
+        userToUpdate.setName("updated name");
+        userToUpdate.setEmail("updatedEmail@t.com");
         when(userRepository.findById(anyLong())).thenReturn(Optional.of(foundUser));
-        when(userRepository.save(expectedUser)).thenReturn(expectedUser);
+        when(userRepository.save(any())).thenReturn(userToUpdate);
 
-        final var actualUser = userService.update(anyLong(), mapToUserDto(userToUpdate));
+        userService.update(anyLong(), mapToUserDto(userToUpdate));
 
-        assertEquals(expectedUser.getId(), actualUser.getId());
-        assertEquals(expectedUser.getName(), actualUser.getName());
-        assertEquals(expectedUser.getEmail(), actualUser.getEmail());
+        verify(userRepository).save(userArgumentCaptor.capture());
+        final var savedUser = userArgumentCaptor.getValue();
 
-        verify(userRepository).save(expectedUser);
+        assertEquals("updated name", savedUser.getName());
+        assertEquals("updatedEmail@t.com", savedUser.getEmail());
+    }
+
+    @Test
+    void updateUser_whenUserNameIsNull_thenUpdatedAndReturnedUser() {
+        final var foundUser = getUser();
+        final var userToUpdate = getUser();
+        userToUpdate.setName(null);
+        userToUpdate.setEmail("new");
+        final var expectedUser = getUser();
+        expectedUser.setEmail("new");
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(foundUser));
+        when(userRepository.save(any())).thenReturn(expectedUser);
+
+        userService.update(anyLong(), mapToUserDto(userToUpdate));
+
+        verify(userRepository).save(userArgumentCaptor.capture());
+        final var savedUser = userArgumentCaptor.getValue();
+
+        assertEquals("name", savedUser.getName());
+        assertEquals("new", savedUser.getEmail());
     }
 
     @Test
     void updateUser_whenUserEmailIsNull_thenReturnedUser() {
-        final var userToUpdate = User.builder()
-                .id(1L)
-                .name("updated name")
-                .email(null)
-                .build();
-        final var foundUser = User.builder()
-                .id(1L)
-                .name("name")
-                .email("email@t.com")
-                .build();
-        final var expectedUser = User.builder()
-                .id(foundUser.getId())
-                .name(userToUpdate.getName())
-                .email(foundUser.getEmail())
-                .build();
-
+        final var foundUser = getUser();
+        final var userToUpdate = getUser();
+        userToUpdate.setName("new");
+        userToUpdate.setEmail(null);
+        final var expectedUser = getUser();
+        expectedUser.setName("new");
         when(userRepository.findById(anyLong())).thenReturn(Optional.of(foundUser));
-        when(userRepository.save(expectedUser)).thenReturn(expectedUser);
+        when(userRepository.save(any())).thenReturn(expectedUser);
 
-        final var actualUser = userService.update(anyLong(), mapToUserDto(userToUpdate));
+        userService.update(anyLong(), mapToUserDto(userToUpdate));
 
-        assertEquals(expectedUser.getId(), actualUser.getId());
-        assertEquals(expectedUser.getName(), actualUser.getName());
-        assertEquals(expectedUser.getEmail(), actualUser.getEmail());
+        verify(userRepository).save(userArgumentCaptor.capture());
+        final var savedUser = userArgumentCaptor.getValue();
 
-        verify(userRepository).save(expectedUser);
+        assertEquals("new", savedUser.getName());
+        assertEquals("email@t.com", savedUser.getEmail());
     }
 
     @Test
     void updateUser_whenUserNotFound_thenNotFoundExceptionThrown() {
         final var user = UserDto.builder().build();
-
         when(userRepository.findById(anyLong())).thenReturn(Optional.empty());
 
         NotFoundException notFoundException = assertThrows(NotFoundException.class,
                 () -> userService.update(anyLong(), user));
 
         assertEquals(notFoundException.getMessage(), "User does not exist");
+        verify(userRepository, never()).save(mapToUser(user));
     }
 
     @Test
     void updateUser_whenUserEmailAlreadyExist_thenAlreadyExistsExceptionThrown() {
-        final var foundUser = Optional.of(new User());
-        final var updatedUser = UserDto.builder()
-                .id(1L)
-                .email("exist@email.com")
-                .build();
-
+        final var foundUser = Optional.of(getUser());
+        final var userToUpdate = getUserDto();
         when(userRepository.findById(anyLong())).thenReturn(foundUser);
-        when(userRepository.findByEmail(updatedUser.getEmail())).thenReturn(foundUser);
+        when(userRepository.findByEmail(anyString())).thenReturn(foundUser);
 
         AlreadyExistsException alreadyExistsException = assertThrows(AlreadyExistsException.class,
-                () -> userService.update(anyLong(), updatedUser));
+                () -> userService.update(anyLong(), userToUpdate));
 
         assertEquals(alreadyExistsException.getMessage(), "Email already exists");
+
+        verify(userRepository, never()).save(mapToUser(userToUpdate));
+    }
+
+    @Test
+    void deleteUser() {
+        userService.deleteById(anyLong());
+
+        verify(userRepository).deleteById(anyLong());
+    }
+
+    private User getUser() {
+        return User.builder()
+                .id(1L)
+                .name("name")
+                .email("email@t.com")
+                .build();
+    }
+
+    private UserDto getUserDto() {
+        return UserDto.builder()
+                .id(1L)
+                .name("name")
+                .email("email@t.com")
+                .build();
     }
 }

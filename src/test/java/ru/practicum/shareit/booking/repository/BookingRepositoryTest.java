@@ -28,7 +28,6 @@ public class BookingRepositoryTest {
     private UserRepository userRepository;
     @Autowired
     private ItemRepository itemRepository;
-
     private Long currentUserId;
 
     @BeforeEach

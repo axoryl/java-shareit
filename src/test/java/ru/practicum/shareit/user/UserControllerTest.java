@@ -26,9 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class UserControllerTest {
 
     private final ObjectMapper objectMapper;
-
     private final MockMvc mockMvc;
-
     @MockBean
     private UserService userService;
 

@@ -46,6 +46,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemInfoDto findById(final Long userId, final Long id) {
+        userService.findById(userId);
         final var itemInfoDto = ItemMapper.mapToItemBookingDto(itemRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Item not found")));
         final var comments = CommentMapper.mapToCommentInfoDto(commentRepository.findAllByItemId(id));

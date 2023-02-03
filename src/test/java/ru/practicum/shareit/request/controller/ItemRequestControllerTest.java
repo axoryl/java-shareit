@@ -28,9 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class ItemRequestControllerTest {
 
     private final ObjectMapper objectMapper;
-
     private final MockMvc mockMvc;
-
     @MockBean
     private ItemRequestService itemRequestService;
 
