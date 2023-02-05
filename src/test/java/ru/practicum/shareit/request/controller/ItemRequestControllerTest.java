@@ -16,6 +16,7 @@ import ru.practicum.shareit.request.service.ItemRequestService;
 import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -74,9 +75,10 @@ public class ItemRequestControllerTest {
                 .getResponse()
                 .getContentAsString();
 
-        assertEquals(objectMapper.writeValueAsString(request), result);
-
-        verify(itemRequestService).findByRequestId(1L, 2L);
+        assertAll(
+                () -> assertEquals(objectMapper.writeValueAsString(request), result),
+                () -> verify(itemRequestService).findByRequestId(1L, 2L)
+        );
     }
 
     @SneakyThrows
@@ -97,9 +99,10 @@ public class ItemRequestControllerTest {
                 .getResponse()
                 .getContentAsString();
 
-        assertEquals(objectMapper.writeValueAsString(request), result);
-
-        verify(itemRequestService).save(1L, createdRequest);
+        assertAll(
+                () -> assertEquals(objectMapper.writeValueAsString(request), result),
+                () -> verify(itemRequestService).save(1L, createdRequest)
+        );
     }
 
     private ItemRequestInfoDto getItemRequestInfoDto() {

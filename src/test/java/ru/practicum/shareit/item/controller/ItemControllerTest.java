@@ -17,6 +17,7 @@ import ru.practicum.shareit.item.service.ItemService;
 import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -45,9 +46,10 @@ public class ItemControllerTest {
                 .getResponse()
                 .getContentAsString();
 
-        assertEquals(objectMapper.writeValueAsString(item), result);
-
-        verify(itemService).findById(1L, 1L);
+        assertAll(
+                () -> assertEquals(objectMapper.writeValueAsString(item), result),
+                () -> verify(itemService).findById(1L, 1L)
+        );
     }
 
     @SneakyThrows
@@ -95,9 +97,10 @@ public class ItemControllerTest {
                 .getResponse()
                 .getContentAsString();
 
-        assertEquals(objectMapper.writeValueAsString(item), result);
-
-        verify(itemService).save(1L, item);
+        assertAll(
+                () -> assertEquals(objectMapper.writeValueAsString(item), result),
+                () -> verify(itemService).save(1L, item)
+        );
     }
 
     @SneakyThrows
@@ -168,9 +171,10 @@ public class ItemControllerTest {
                 .getResponse()
                 .getContentAsString();
 
-        assertEquals(objectMapper.writeValueAsString(comment), result);
-
-        verify(itemService).addComment(1L, 1L, createdComment);
+        assertAll(
+                () -> assertEquals(objectMapper.writeValueAsString(comment), result),
+                () -> verify(itemService).addComment(1L, 1L, createdComment)
+        );
     }
 
     @SneakyThrows
@@ -207,9 +211,10 @@ public class ItemControllerTest {
                 .getResponse()
                 .getContentAsString();
 
-        assertEquals(objectMapper.writeValueAsString(itemToUpdate), result);
-
-        verify(itemService).update(1L, 1L, itemToUpdate);
+        assertAll(
+                () -> assertEquals(objectMapper.writeValueAsString(itemToUpdate), result),
+                () -> verify(itemService).update(1L, 1L, itemToUpdate)
+        );
     }
 
     private ItemInfoDto getItemInfoDto() {

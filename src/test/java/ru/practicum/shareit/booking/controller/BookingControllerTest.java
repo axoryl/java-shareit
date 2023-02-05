@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -45,9 +46,10 @@ public class BookingControllerTest {
                 .getResponse()
                 .getContentAsString();
 
-        assertEquals(objectMapper.writeValueAsString(booking), result);
-
-        verify(bookingService).findById(1L, 2L);
+        assertAll(
+                () -> assertEquals(objectMapper.writeValueAsString(booking), result),
+                () -> verify(bookingService).findById(1L, 2L)
+        );
     }
 
     @SneakyThrows
@@ -172,9 +174,10 @@ public class BookingControllerTest {
                 .getResponse()
                 .getContentAsString();
 
-        assertEquals(objectMapper.writeValueAsString(booking), result);
-
-        verify(bookingService).save(1L, createdBooking);
+        assertAll(
+                () -> assertEquals(objectMapper.writeValueAsString(booking), result),
+                () -> verify(bookingService).save(1L, createdBooking)
+        );
     }
 
     @SneakyThrows
@@ -247,9 +250,10 @@ public class BookingControllerTest {
                 .getResponse()
                 .getContentAsString();
 
-        assertEquals(objectMapper.writeValueAsString(booking), result);
-
-        verify(bookingService).approve(1L, 1L, true);
+        assertAll(
+                () -> assertEquals(objectMapper.writeValueAsString(booking), result),
+                () -> verify(bookingService).approve(1L, 1L, true)
+        );
     }
 
     private BookingDto getBookingDto() {
