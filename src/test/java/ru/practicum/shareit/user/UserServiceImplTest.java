@@ -42,9 +42,10 @@ public class UserServiceImplTest {
 
         final var actualUser = userService.findById(anyLong());
 
-        assertEquals(mapToUserDto(expectedUser), actualUser);
-
-        verify(userRepository).findById(anyLong());
+        assertAll(
+                () -> assertEquals(mapToUserDto(expectedUser), actualUser),
+                () -> verify(userRepository).findById(anyLong())
+        );
     }
 
     @Test
@@ -64,9 +65,10 @@ public class UserServiceImplTest {
 
         final var actualUsers = userService.findAll();
 
-        assertEquals(expectedUsers.size(), actualUsers.size());
-
-        verify(userRepository).findAll();
+        assertAll(
+                () -> assertEquals(expectedUsers.size(), actualUsers.size()),
+                () -> verify(userRepository).findAll()
+        );
     }
 
     @Test
@@ -79,10 +81,9 @@ public class UserServiceImplTest {
         assertAll(
                 () -> assertNotNull(savedUser),
                 () -> assertEquals(userToSave.getName(), savedUser.getName()),
-                () -> assertEquals(userToSave.getEmail(), savedUser.getEmail())
+                () -> assertEquals(userToSave.getEmail(), savedUser.getEmail()),
+                () -> verify(userRepository).save(any())
         );
-
-        verify(userRepository).save(any());
     }
 
     @Test
@@ -160,9 +161,10 @@ public class UserServiceImplTest {
         NotFoundException notFoundException = assertThrows(NotFoundException.class,
                 () -> userService.update(anyLong(), user));
 
-        assertEquals("User does not exist", notFoundException.getMessage());
-
-        verify(userRepository, never()).save(mapToUser(user));
+        assertAll(
+                () -> assertEquals("User does not exist", notFoundException.getMessage()),
+                () -> verify(userRepository, never()).save(mapToUser(user))
+        );
     }
 
     @Test
@@ -175,9 +177,10 @@ public class UserServiceImplTest {
         AlreadyExistsException alreadyExistsException = assertThrows(AlreadyExistsException.class,
                 () -> userService.update(anyLong(), userToUpdate));
 
-        assertEquals("Email already exists", alreadyExistsException.getMessage());
-
-        verify(userRepository, never()).save(mapToUser(userToUpdate));
+        assertAll(
+                () -> assertEquals("Email already exists", alreadyExistsException.getMessage()),
+                () -> verify(userRepository, never()).save(mapToUser(userToUpdate))
+        );
     }
 
     @Test

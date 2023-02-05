@@ -15,6 +15,7 @@ import ru.practicum.shareit.user.service.UserService;
 import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -42,9 +43,10 @@ public class UserControllerTest {
                 .getResponse()
                 .getContentAsString();
 
-        assertEquals(objectMapper.writeValueAsString(user), result);
-
-        verify(userService).findById(anyLong());
+        assertAll(
+                () -> assertEquals(objectMapper.writeValueAsString(user), result),
+                () -> verify(userService).findById(anyLong())
+        );
     }
 
     @SneakyThrows
@@ -74,9 +76,10 @@ public class UserControllerTest {
                 .getResponse()
                 .getContentAsString();
 
-        assertEquals(objectMapper.writeValueAsString(user), result);
-
-        verify(userService).save(user);
+        assertAll(
+                () -> assertEquals(objectMapper.writeValueAsString(user), result),
+                () -> verify(userService).save(user)
+        );
     }
 
     @SneakyThrows
@@ -138,9 +141,10 @@ public class UserControllerTest {
                 .getResponse()
                 .getContentAsString();
 
-        assertEquals(objectMapper.writeValueAsString(userToUpdate), result);
-
-        verify(userService).update(userToUpdate.getId(), userToUpdate);
+        assertAll(
+                () -> assertEquals(objectMapper.writeValueAsString(userToUpdate), result),
+                () -> verify(userService).update(userToUpdate.getId(), userToUpdate)
+        );
     }
 
     @SneakyThrows
