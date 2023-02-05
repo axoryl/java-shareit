@@ -11,9 +11,9 @@ public interface ItemService {
 
     ItemInfoDto findById(Long ownerId, Long id);
 
-    List<ItemInfoDto> findAllOwnerItems(Long ownerId);
+    List<ItemInfoDto> findAllOwnerItems(Long ownerId, Integer from, Integer size);
 
-    List<ItemCreationDto> search(String text);
+    List<ItemCreationDto> search(String text, Integer from, Integer size);
 
     ItemCreationDto save(Long ownerId, ItemCreationDto itemCreationDto);
 

@@ -1,6 +1,7 @@
 package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,9 +37,9 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public BookingDto findById(final Long userId, final Long bookingId) {
+        userService.findById(userId);
         final var booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundException("Booking not found"));
-        userService.findById(userId);
         itemRepository.findById(booking.getItem().getId())
                 .orElseThrow(() -> new NotFoundException("Item not found"));
 
@@ -50,7 +51,10 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingDto> findAllByStateForOwner(final Long userId, final BookingState state) {
+    public List<BookingDto> findAllByStateForOwner(final Long userId,
+                                                   final BookingState state,
+                                                   final Integer from,
+                                                   final Integer size) {
         userService.findById(userId);
 
         final List<Long> itemsId = itemRepository.findByOwnerId(userId).stream()
@@ -61,32 +65,32 @@ public class BookingServiceImpl implements BookingService {
             return new ArrayList<>();
         }
 
+        final var pageable = PageRequest.of(from / size, size, Sort.by("start").descending());
         final var currentTime = LocalDateTime.now();
         final List<Booking> bookings = new ArrayList<>();
 
         switch (state) {
             case CURRENT:
-                bookings.addAll(bookingRepository.findByCurrentTime(currentTime, itemsId));
+                bookings.addAll(bookingRepository.findByCurrentTime(currentTime, itemsId, pageable).getContent());
                 break;
             case PAST:
-                bookings.addAll(bookingRepository.findByEndBeforeAndItemIdIn(currentTime, itemsId,
-                        Sort.by("start").descending()));
+                bookings.addAll(bookingRepository.findByEndBeforeAndItemIdIn(currentTime, itemsId, pageable)
+                        .getContent());
                 break;
             case FUTURE:
-                bookings.addAll(bookingRepository.findByStartAfterAndItemIdIn(currentTime, itemsId,
-                        Sort.by("start").descending()));
+                bookings.addAll(bookingRepository.findByStartAfterAndItemIdIn(currentTime, itemsId, pageable)
+                        .getContent());
                 break;
             case WAITING:
-                bookings.addAll(bookingRepository.findByStatusAndItemIdIn(BookingStatus.WAITING, itemsId,
-                        Sort.by("start").descending()));
+                bookings.addAll(bookingRepository.findByStatusAndItemIdIn(BookingStatus.WAITING, itemsId, pageable)
+                        .getContent());
                 break;
             case REJECTED:
-                bookings.addAll(bookingRepository.findByStatusAndItemIdIn(BookingStatus.REJECTED, itemsId,
-                        Sort.by("start").descending()));
+                bookings.addAll(bookingRepository.findByStatusAndItemIdIn(BookingStatus.REJECTED, itemsId, pageable)
+                        .getContent());
                 break;
             default:
-                bookings.addAll(bookingRepository.findAllByItemIdIn(itemsId,
-                        Sort.by("start").descending()));
+                bookings.addAll(bookingRepository.findAllByItemIdIn(itemsId, pageable).getContent());
                 break;
         }
 
@@ -96,35 +100,38 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingDto> findAllByState(final Long userId, final BookingState state) {
+    public List<BookingDto> findAllByState(final Long userId,
+                                           final BookingState state,
+                                           final Integer from,
+                                           final Integer size) {
         userService.findById(userId);
 
+        final var pageable = PageRequest.of(from / size, size, Sort.by("start").descending());
         final var currentTime = LocalDateTime.now();
         final List<Booking> bookings = new ArrayList<>();
 
         switch (state) {
             case CURRENT:
-                bookings.addAll(bookingRepository.findByCurrentTime(userId, currentTime));
+                bookings.addAll(bookingRepository.findByCurrentTime(userId, currentTime, pageable).getContent());
                 break;
             case PAST:
-                bookings.addAll(bookingRepository.findByBookerIdAndEndBefore(userId, currentTime,
-                        Sort.by("start").descending()));
+                bookings.addAll(bookingRepository.findByBookerIdAndEndBefore(userId, currentTime, pageable)
+                        .getContent());
                 break;
             case FUTURE:
-                bookings.addAll(bookingRepository.findByBookerIdAndStartAfter(userId, currentTime,
-                        Sort.by("start").descending()));
+                bookings.addAll(bookingRepository.findByBookerIdAndStartAfter(userId, currentTime, pageable)
+                        .getContent());
                 break;
             case WAITING:
-                bookings.addAll(bookingRepository.findByBookerIdAndStatus(userId, BookingStatus.WAITING,
-                        Sort.by("start").descending()));
+                bookings.addAll(bookingRepository.findByBookerIdAndStatus(userId, BookingStatus.WAITING, pageable)
+                        .getContent());
                 break;
             case REJECTED:
-                bookings.addAll(bookingRepository.findByBookerIdAndStatus(userId, BookingStatus.REJECTED,
-                        Sort.by("start").descending()));
+                bookings.addAll(bookingRepository.findByBookerIdAndStatus(userId, BookingStatus.REJECTED, pageable)
+                        .getContent());
                 break;
             default:
-                bookings.addAll(bookingRepository.findAllByBookerId(userId,
-                        Sort.by("start").descending()));
+                bookings.addAll(bookingRepository.findAllByBookerId(userId, pageable).getContent());
                 break;
         }
 
