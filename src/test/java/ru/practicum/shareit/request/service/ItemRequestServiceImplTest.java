@@ -14,8 +14,7 @@ import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 @Transactional
 @SpringBootTest
@@ -35,9 +34,10 @@ public class ItemRequestServiceImplTest {
 
         final var actualRequests = itemRequestService.findAllByUserId(user.getId());
 
-        assertThat(actualRequests)
-                .isNotNull()
-                .hasSize(1);
+        assertAll(
+                () -> assertNotNull(actualRequests),
+                () -> assertEquals(1, actualRequests.size())
+        );
     }
 
     @Test
@@ -50,8 +50,7 @@ public class ItemRequestServiceImplTest {
         final var exception = assertThrows(NotFoundException.class,
                 () -> itemRequestService.findByRequestId(99L, request.getId()));
 
-        assertThat(exception.getMessage())
-                .isEqualTo("User not found");
+        assertEquals("User not found", exception.getMessage());
     }
 
     @Test
@@ -63,11 +62,12 @@ public class ItemRequestServiceImplTest {
 
         final var actualRequest = itemRequestService.findByRequestId(user.getId(), expectedRequest.getId());
 
-        assertThat(actualRequest)
-                .isNotNull()
-                .hasFieldOrPropertyWithValue("id", expectedRequest.getId())
-                .hasFieldOrPropertyWithValue("created", expectedRequest.getCreated())
-                .hasFieldOrPropertyWithValue("description", expectedRequest.getDescription());
+        assertAll(
+                () -> assertNotNull(actualRequest),
+                () -> assertEquals(expectedRequest.getId(), actualRequest.getId()),
+                () -> assertEquals(expectedRequest.getCreated(), actualRequest.getCreated()),
+                () -> assertEquals(expectedRequest.getDescription(), actualRequest.getDescription())
+        );
     }
 
     @Test
@@ -80,8 +80,7 @@ public class ItemRequestServiceImplTest {
         final var exception = assertThrows(NotFoundException.class,
                 () -> itemRequestService.findByRequestId(99L, request.getId()));
 
-        assertThat(exception.getMessage())
-                .isEqualTo("User not found");
+        assertEquals("User not found", exception.getMessage());
     }
 
     @Test
@@ -91,8 +90,7 @@ public class ItemRequestServiceImplTest {
         final var exception = assertThrows(NotFoundException.class,
                 () -> itemRequestService.findByRequestId(user.getId(), 99L));
 
-        assertThat(exception.getMessage())
-                .isEqualTo("Request not found");
+        assertEquals("Request not found", exception.getMessage());
     }
 
     @Test
@@ -113,9 +111,10 @@ public class ItemRequestServiceImplTest {
 
         final var actualRequests = itemRequestService.findAllWithPagination(requestorId, 0, 10);
 
-        assertThat(actualRequests)
-                .isNotNull()
-                .hasSize(1);
+        assertAll(
+                () -> assertNotNull(actualRequests),
+                () -> assertEquals(1, actualRequests.size())
+        );
     }
 
     @Test
@@ -128,8 +127,7 @@ public class ItemRequestServiceImplTest {
         final var exception = assertThrows(NotFoundException.class,
                 () -> itemRequestService.findAllWithPagination(99L, 0, 10));
 
-        assertThat(exception.getMessage())
-                .isEqualTo("User not found");
+        assertEquals("User not found", exception.getMessage());
     }
 
     @Test
@@ -137,8 +135,10 @@ public class ItemRequestServiceImplTest {
         final var userId = userRepository.save(getUser()).getId();
         final var actualRequest = itemRequestService.save(userId, getItemRequestCreationDto());
 
-        assertThat(actualRequest.getDescription())
-                .isEqualTo("desc");
+        assertAll(
+                () -> assertNotNull(actualRequest),
+                () -> assertEquals("desc", actualRequest.getDescription())
+        );
     }
 
     @Test
@@ -146,8 +146,7 @@ public class ItemRequestServiceImplTest {
         final var exception = assertThrows(NotFoundException.class,
                 () -> itemRequestService.save(1L, getItemRequestCreationDto()));
 
-        assertThat(exception.getMessage())
-                .isEqualTo("User not found");
+        assertEquals("User not found", exception.getMessage());
     }
 
     private ItemRequestCreationDto getItemRequestCreationDto() {

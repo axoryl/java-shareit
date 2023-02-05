@@ -21,8 +21,7 @@ import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 @Transactional
 @SpringBootTest
@@ -54,19 +53,19 @@ public class BookingServiceImplTest {
         final var bookingForOwner = bookingService.findById(ownerId, bookingId);
         final var bookingForBooker = bookingService.findById(booker.getId(), bookingId);
 
-        assertThat(bookingForOwner)
-                .isNotNull()
-                .hasFieldOrPropertyWithValue("id", bookingId)
-                .hasFieldOrPropertyWithValue("start", booking.getStart())
-                .hasFieldOrPropertyWithValue("end", booking.getEnd())
-                .hasFieldOrPropertyWithValue("status", booking.getStatus());
+        assertAll(
+                () -> assertEquals(bookingId, bookingForOwner.getId()),
+                () -> assertEquals(booking.getStart(), bookingForOwner.getStart()),
+                () -> assertEquals(booking.getEnd(), bookingForOwner.getEnd()),
+                () -> assertEquals(booking.getStatus(), bookingForOwner.getStatus())
+        );
 
-        assertThat(bookingForBooker)
-                .isNotNull()
-                .hasFieldOrPropertyWithValue("id", bookingId)
-                .hasFieldOrPropertyWithValue("start", booking.getStart())
-                .hasFieldOrPropertyWithValue("end", booking.getEnd())
-                .hasFieldOrPropertyWithValue("status", booking.getStatus());
+        assertAll(
+                () -> assertEquals(bookingId, bookingForBooker.getId()),
+                () -> assertEquals(booking.getStart(), bookingForBooker.getStart()),
+                () -> assertEquals(booking.getEnd(), bookingForBooker.getEnd()),
+                () -> assertEquals(booking.getStatus(), bookingForBooker.getStatus())
+        );
     }
 
     @Test
@@ -74,8 +73,7 @@ public class BookingServiceImplTest {
         final var exception = assertThrows(NotFoundException.class,
                 () -> bookingService.findById(99L, 1L));
 
-        assertThat(exception.getMessage())
-                .isEqualTo("User does not exist");
+        assertEquals("User does not exist", exception.getMessage());
     }
 
     @Test
@@ -89,8 +87,7 @@ public class BookingServiceImplTest {
         final var exception = assertThrows(NotFoundException.class,
                 () -> bookingService.findById(ownerId, 99L));
 
-        assertThat(exception.getMessage())
-                .isEqualTo("Booking not found");
+        assertEquals("Booking not found", exception.getMessage());
     }
 
     @Test
@@ -114,8 +111,7 @@ public class BookingServiceImplTest {
         final var exception = assertThrows(NotFoundException.class,
                 () -> bookingService.findById(ownerId, bookingId));
 
-        assertThat(exception.getMessage())
-                .isEqualTo("Item not found");
+        assertEquals("Item not found", exception.getMessage());
     }
 
     @Test
@@ -141,8 +137,7 @@ public class BookingServiceImplTest {
         final var exception = assertThrows(NotFoundException.class,
                 () -> bookingService.findById(anotherUserId, bookingId));
 
-        assertThat(exception.getMessage())
-                .isEqualTo("Booking not found");
+        assertEquals("Booking not found", exception.getMessage());
     }
 
     @Test
@@ -164,9 +159,10 @@ public class BookingServiceImplTest {
 
         final var bookings = bookingService.findAllByStateForOwner(ownerId, BookingState.ALL, 0, 10);
 
-        assertThat(bookings)
-                .isNotNull()
-                .hasSize(1);
+        assertAll(
+                () -> assertNotNull(bookings),
+                () -> assertEquals(1, bookings.size())
+        );
     }
 
     @Test
@@ -188,9 +184,10 @@ public class BookingServiceImplTest {
 
         final var bookings = bookingService.findAllByStateForOwner(ownerId, BookingState.CURRENT, 0, 10);
 
-        assertThat(bookings)
-                .isNotNull()
-                .hasSize(1);
+        assertAll(
+                () -> assertNotNull(bookings),
+                () -> assertEquals(1, bookings.size())
+        );
     }
 
     @Test
@@ -214,9 +211,10 @@ public class BookingServiceImplTest {
 
         final var bookings = bookingService.findAllByStateForOwner(ownerId, BookingState.PAST, 0, 10);
 
-        assertThat(bookings)
-                .isNotNull()
-                .hasSize(1);
+        assertAll(
+                () -> assertNotNull(bookings),
+                () -> assertEquals(1, bookings.size())
+        );
     }
 
     @Test
@@ -240,9 +238,10 @@ public class BookingServiceImplTest {
 
         final var bookings = bookingService.findAllByStateForOwner(ownerId, BookingState.FUTURE, 0, 10);
 
-        assertThat(bookings)
-                .isNotNull()
-                .hasSize(1);
+        assertAll(
+                () -> assertNotNull(bookings),
+                () -> assertEquals(1, bookings.size())
+        );
     }
 
     @Test
@@ -265,9 +264,10 @@ public class BookingServiceImplTest {
 
         final var bookings = bookingService.findAllByStateForOwner(ownerId, BookingState.WAITING, 0, 10);
 
-        assertThat(bookings)
-                .isNotNull()
-                .hasSize(1);
+        assertAll(
+                () -> assertNotNull(bookings),
+                () -> assertEquals(1, bookings.size())
+        );
     }
 
     @Test
@@ -290,9 +290,10 @@ public class BookingServiceImplTest {
 
         final var bookings = bookingService.findAllByStateForOwner(ownerId, BookingState.REJECTED, 0, 10);
 
-        assertThat(bookings)
-                .isNotNull()
-                .hasSize(1);
+        assertAll(
+                () -> assertNotNull(bookings),
+                () -> assertEquals(1, bookings.size())
+        );
     }
 
     @Test
@@ -300,8 +301,7 @@ public class BookingServiceImplTest {
         final var exception = assertThrows(NotFoundException.class,
                 () -> bookingService.findAllByStateForOwner(99L, BookingState.ALL, 0, 10));
 
-        assertThat(exception.getMessage())
-                .isEqualTo("User does not exist");
+        assertEquals("User does not exist", exception.getMessage());
     }
 
     @Test
@@ -314,9 +314,10 @@ public class BookingServiceImplTest {
 
         final var bookings = bookingService.findAllByStateForOwner(ownerId, BookingState.ALL, 0, 10);
 
-        assertThat(bookings)
-                .isNotNull()
-                .isEmpty();
+        assertAll(
+                () -> assertNotNull(bookings),
+                () -> assertEquals(0, bookings.size())
+        );
     }
 
     @Test
@@ -338,9 +339,10 @@ public class BookingServiceImplTest {
 
         final var bookings = bookingService.findAllByState(userId, BookingState.ALL, 0, 10);
 
-        assertThat(bookings)
-                .isNotNull()
-                .hasSize(1);
+        assertAll(
+                () -> assertNotNull(bookings),
+                () -> assertEquals(1, bookings.size())
+        );
     }
 
     @Test
@@ -362,9 +364,10 @@ public class BookingServiceImplTest {
 
         final var bookings = bookingService.findAllByState(userId, BookingState.CURRENT, 0, 10);
 
-        assertThat(bookings)
-                .isNotNull()
-                .hasSize(1);
+        assertAll(
+                () -> assertNotNull(bookings),
+                () -> assertEquals(1, bookings.size())
+        );
     }
 
     @Test
@@ -388,9 +391,10 @@ public class BookingServiceImplTest {
 
         final var bookings = bookingService.findAllByState(userId, BookingState.PAST, 0, 10);
 
-        assertThat(bookings)
-                .isNotNull()
-                .hasSize(1);
+        assertAll(
+                () -> assertNotNull(bookings),
+                () -> assertEquals(1, bookings.size())
+        );
     }
 
     @Test
@@ -414,9 +418,10 @@ public class BookingServiceImplTest {
 
         final var bookings = bookingService.findAllByState(userId, BookingState.FUTURE, 0, 10);
 
-        assertThat(bookings)
-                .isNotNull()
-                .hasSize(1);
+        assertAll(
+                () -> assertNotNull(bookings),
+                () -> assertEquals(1, bookings.size())
+        );
     }
 
     @Test
@@ -439,9 +444,10 @@ public class BookingServiceImplTest {
 
         final var bookings = bookingService.findAllByState(userId, BookingState.WAITING, 0, 10);
 
-        assertThat(bookings)
-                .isNotNull()
-                .hasSize(1);
+        assertAll(
+                () -> assertNotNull(bookings),
+                () -> assertEquals(1, bookings.size())
+        );
     }
 
     @Test
@@ -464,9 +470,10 @@ public class BookingServiceImplTest {
 
         final var bookings = bookingService.findAllByState(userId, BookingState.REJECTED, 0, 10);
 
-        assertThat(bookings)
-                .isNotNull()
-                .hasSize(1);
+        assertAll(
+                () -> assertNotNull(bookings),
+                () -> assertEquals(1, bookings.size())
+        );
     }
 
     @Test
@@ -474,8 +481,7 @@ public class BookingServiceImplTest {
         final var exception = assertThrows(NotFoundException.class,
                 () -> bookingService.findAllByState(99L, BookingState.ALL, 0, 10));
 
-        assertThat(exception.getMessage())
-                .isEqualTo("User does not exist");
+        assertEquals("User does not exist", exception.getMessage());
     }
 
     @Test
@@ -495,10 +501,11 @@ public class BookingServiceImplTest {
 
         final var actualBooking = bookingService.save(bookerId, booking);
 
-        assertThat(actualBooking)
-                .isNotNull()
-                .hasFieldOrPropertyWithValue("start", booking.getStart())
-                .hasFieldOrPropertyWithValue("end", booking.getEnd());
+        assertAll(
+                () -> assertNotNull(actualBooking),
+                () -> assertEquals(booking.getStart(), actualBooking.getStart()),
+                () -> assertEquals(booking.getEnd(), actualBooking.getEnd())
+        );
     }
 
     @Test
@@ -516,8 +523,7 @@ public class BookingServiceImplTest {
         final var exception = assertThrows(NotFoundException.class,
                 () -> bookingService.save(99L, booking));
 
-        assertThat(exception.getMessage())
-                .isEqualTo("User does not exist");
+        assertEquals("User does not exist", exception.getMessage());
     }
 
     @Test
@@ -531,8 +537,7 @@ public class BookingServiceImplTest {
         final var exception = assertThrows(NotFoundException.class,
                 () -> bookingService.save(userId, booking));
 
-        assertThat(exception.getMessage())
-                .isEqualTo("Item not found");
+        assertEquals("Item not found", exception.getMessage());
     }
 
     @Test
@@ -554,8 +559,7 @@ public class BookingServiceImplTest {
         final var exception = assertThrows(UnavailableException.class,
                 () -> bookingService.save(bookerId, booking));
 
-        assertThat(exception.getMessage())
-                .isEqualTo("Item unavailable");
+        assertEquals("Item unavailable", exception.getMessage());
     }
 
     @Test
@@ -578,9 +582,9 @@ public class BookingServiceImplTest {
         final var exception = assertThrows(IncorrectDateTimeException.class,
                 () -> bookingService.save(bookerId, booking));
 
-        assertThat(exception.getMessage())
-                .isEqualTo("Invalid booking date: " +
-                        "start[" + booking.getStart() + "] <<>> end[" + booking.getEnd() + "]");
+        assertEquals("Invalid booking date: " +
+                        "start[" + booking.getStart() + "] <<>> end[" + booking.getEnd() + "]",
+                exception.getMessage());
     }
 
     @Test
@@ -598,8 +602,7 @@ public class BookingServiceImplTest {
         final var exception = assertThrows(NotFoundException.class,
                 () -> bookingService.save(ownerId, booking));
 
-        assertThat(exception.getMessage())
-                .isEqualTo("The owner cannot book his item");
+        assertEquals("The owner cannot book his item", exception.getMessage());
     }
 
     @Test
@@ -621,9 +624,10 @@ public class BookingServiceImplTest {
 
         final var actualBooking = bookingService.approve(ownerId, bookingId, true);
 
-        assertThat(actualBooking)
-                .isNotNull()
-                .hasFieldOrPropertyWithValue("status", BookingStatus.APPROVED);
+        assertAll(
+                () -> assertNotNull(actualBooking),
+                () -> assertEquals(BookingStatus.APPROVED, actualBooking.getStatus())
+        );
     }
 
     @Test
@@ -631,8 +635,7 @@ public class BookingServiceImplTest {
         final var exception = assertThrows(NotFoundException.class,
                 () -> bookingService.approve(99L, 1L, true));
 
-        assertThat(exception.getMessage())
-                .isEqualTo("User does not exist");
+        assertEquals("User does not exist", exception.getMessage());
     }
 
     @Test
@@ -641,8 +644,7 @@ public class BookingServiceImplTest {
         final var exception = assertThrows(NotFoundException.class,
                 () -> bookingService.approve(ownerId, 99L, true));
 
-        assertThat(exception.getMessage())
-                .isEqualTo("Booking not found");
+        assertEquals("Booking not found", exception.getMessage());
     }
 
     @Test
@@ -665,8 +667,7 @@ public class BookingServiceImplTest {
         final var exception = assertThrows(NotFoundException.class,
                 () -> bookingService.approve(bookerId, bookingId, true));
 
-        assertThat(exception.getMessage())
-                .isEqualTo("Booking not found");
+        assertEquals("Booking not found", exception.getMessage());
     }
 
     @Test
@@ -690,8 +691,7 @@ public class BookingServiceImplTest {
         final var exception = assertThrows(StatusAlreadySetException.class,
                 () -> bookingService.approve(ownerId, bookingId, true));
 
-        assertThat(exception.getMessage())
-                .isEqualTo("Status of booking is already " + booking.getStatus());
+        assertEquals("Status of booking is already " + booking.getStatus(), exception.getMessage());
     }
 
     private User getUser() {

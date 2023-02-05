@@ -18,8 +18,7 @@ import ru.practicum.shareit.user.service.UserServiceImpl;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 import static ru.practicum.shareit.user.mapper.UserMapper.mapToUser;
@@ -44,6 +43,7 @@ public class UserServiceImplTest {
         final var actualUser = userService.findById(anyLong());
 
         assertEquals(mapToUserDto(expectedUser), actualUser);
+
         verify(userRepository).findById(anyLong());
     }
 
@@ -54,7 +54,7 @@ public class UserServiceImplTest {
         NotFoundException notFoundException = assertThrows(NotFoundException.class,
                 () -> userService.findById(anyLong()));
 
-        assertEquals(notFoundException.getMessage(), "User does not exist");
+        assertEquals("User does not exist", notFoundException.getMessage());
     }
 
     @Test
@@ -65,6 +65,7 @@ public class UserServiceImplTest {
         final var actualUsers = userService.findAll();
 
         assertEquals(expectedUsers.size(), actualUsers.size());
+
         verify(userRepository).findAll();
     }
 
@@ -75,8 +76,11 @@ public class UserServiceImplTest {
 
         final var savedUser = userService.save(mapToUserDto(userToSave));
 
-        assertEquals(userToSave.getName(), savedUser.getName());
-        assertEquals(userToSave.getEmail(), savedUser.getEmail());
+        assertAll(
+                () -> assertNotNull(savedUser),
+                () -> assertEquals(userToSave.getName(), savedUser.getName()),
+                () -> assertEquals(userToSave.getEmail(), savedUser.getEmail())
+        );
 
         verify(userRepository).save(any());
     }
@@ -95,8 +99,11 @@ public class UserServiceImplTest {
         verify(userRepository).save(userArgumentCaptor.capture());
         final var savedUser = userArgumentCaptor.getValue();
 
-        assertEquals("updated name", savedUser.getName());
-        assertEquals("updatedEmail@t.com", savedUser.getEmail());
+        assertAll(
+                () -> assertNotNull(savedUser),
+                () -> assertEquals(userToUpdate.getName(), savedUser.getName()),
+                () -> assertEquals(userToUpdate.getEmail(), savedUser.getEmail())
+        );
     }
 
     @Test
@@ -115,8 +122,11 @@ public class UserServiceImplTest {
         verify(userRepository).save(userArgumentCaptor.capture());
         final var savedUser = userArgumentCaptor.getValue();
 
-        assertEquals("name", savedUser.getName());
-        assertEquals("new", savedUser.getEmail());
+        assertAll(
+                () -> assertNotNull(savedUser),
+                () -> assertEquals(expectedUser.getName(), savedUser.getName()),
+                () -> assertEquals(expectedUser.getEmail(), savedUser.getEmail())
+        );
     }
 
     @Test
@@ -135,8 +145,11 @@ public class UserServiceImplTest {
         verify(userRepository).save(userArgumentCaptor.capture());
         final var savedUser = userArgumentCaptor.getValue();
 
-        assertEquals("new", savedUser.getName());
-        assertEquals("email@t.com", savedUser.getEmail());
+        assertAll(
+                () -> assertNotNull(savedUser),
+                () -> assertEquals(expectedUser.getName(), savedUser.getName()),
+                () -> assertEquals(expectedUser.getEmail(), savedUser.getEmail())
+        );
     }
 
     @Test
@@ -147,7 +160,8 @@ public class UserServiceImplTest {
         NotFoundException notFoundException = assertThrows(NotFoundException.class,
                 () -> userService.update(anyLong(), user));
 
-        assertEquals(notFoundException.getMessage(), "User does not exist");
+        assertEquals("User does not exist", notFoundException.getMessage());
+
         verify(userRepository, never()).save(mapToUser(user));
     }
 
@@ -161,7 +175,7 @@ public class UserServiceImplTest {
         AlreadyExistsException alreadyExistsException = assertThrows(AlreadyExistsException.class,
                 () -> userService.update(anyLong(), userToUpdate));
 
-        assertEquals(alreadyExistsException.getMessage(), "Email already exists");
+        assertEquals("Email already exists", alreadyExistsException.getMessage());
 
         verify(userRepository, never()).save(mapToUser(userToUpdate));
     }

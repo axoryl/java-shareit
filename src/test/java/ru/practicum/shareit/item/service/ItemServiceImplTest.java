@@ -24,9 +24,7 @@ import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 @Transactional
 @SpringBootTest
@@ -70,18 +68,16 @@ public class ItemServiceImplTest {
 
         final var actualItem = itemService.findById(user.getId(), item.getId());
 
-        assertThat(actualItem)
-                .isNotNull()
-                .hasFieldOrPropertyWithValue("name", "item")
-                .hasFieldOrPropertyWithValue("description", "desc")
-                .hasFieldOrPropertyWithValue("ownerId", ownerId);
-
-        assertThat(actualItem.getComments())
-                .isNotNull()
-                .isEmpty();
-
-        assertNull(actualItem.getLastBooking());
-        assertNull(actualItem.getNextBooking());
+        assertAll(
+                () -> assertNotNull(actualItem, "Item is null"),
+                () -> assertNotNull(actualItem.getComments(), "Comments is null"),
+                () -> assertNull(actualItem.getLastBooking(), "LastBooking must be null"),
+                () -> assertNull(actualItem.getNextBooking(), "NextBooking must be null"),
+                () -> assertEquals(0, actualItem.getComments().size()),
+                () -> assertEquals(item.getName(), actualItem.getName()),
+                () -> assertEquals(item.getDescription(), actualItem.getDescription()),
+                () -> assertEquals(item.getOwnerId(), actualItem.getOwnerId())
+        );
     }
 
     @Test
@@ -91,8 +87,7 @@ public class ItemServiceImplTest {
         final var exception = assertThrows(NotFoundException.class,
                 () -> itemService.findById(userId, 99L));
 
-        assertThat(exception.getMessage())
-                .isEqualTo("Item not found");
+        assertEquals("Item not found", exception.getMessage());
     }
 
     @Test
@@ -105,8 +100,7 @@ public class ItemServiceImplTest {
         final var exception = assertThrows(NotFoundException.class,
                 () -> itemService.findById(99L, item.getId()));
 
-        assertThat(exception.getMessage())
-                .isEqualTo("User does not exist");
+        assertEquals("User does not exist", exception.getMessage());
     }
 
     @Test
@@ -139,22 +133,18 @@ public class ItemServiceImplTest {
 
         final var actualItem = itemService.findById(owner.getId(), item.getId());
 
-        assertThat(actualItem)
-                .isNotNull()
-                .hasFieldOrPropertyWithValue("name", "item")
-                .hasFieldOrPropertyWithValue("description", "desc")
-                .hasFieldOrPropertyWithValue("ownerId", owner.getId());
-
-        assertThat(actualItem.getComments())
-                .isNotNull()
-                .isEmpty();
-
-        assertThat(actualItem.getLastBooking())
-                .isNotNull()
-                .hasFieldOrPropertyWithValue("id", lastBooking.getId());
-        assertThat(actualItem.getNextBooking())
-                .isNotNull()
-                .hasFieldOrPropertyWithValue("id", nextBooking.getId());
+        assertAll(
+                () -> assertNotNull(actualItem),
+                () -> assertNotNull(actualItem.getLastBooking()),
+                () -> assertNotNull(actualItem.getNextBooking()),
+                () -> assertNotNull(actualItem.getComments()),
+                () -> assertEquals(lastBooking.getId(), actualItem.getLastBooking().getId()),
+                () -> assertEquals(nextBooking.getId(), actualItem.getNextBooking().getId()),
+                () -> assertEquals(0, actualItem.getComments().size()),
+                () -> assertEquals(item.getName(), actualItem.getName()),
+                () -> assertEquals(item.getDescription(), actualItem.getDescription()),
+                () -> assertEquals(item.getOwnerId(), actualItem.getOwnerId())
+        );
     }
 
     @Test
@@ -197,15 +187,14 @@ public class ItemServiceImplTest {
 
         final var actualItem = itemService.findById(owner.getId(), item.getId());
 
-        assertThat(actualItem)
-                .isNotNull()
-                .hasFieldOrPropertyWithValue("name", "item")
-                .hasFieldOrPropertyWithValue("description", "desc")
-                .hasFieldOrPropertyWithValue("ownerId", owner.getId());
-
-        assertThat(actualItem.getComments())
-                .isNotNull()
-                .hasSize(2);
+        assertAll(
+                () -> assertNotNull(actualItem),
+                () -> assertNotNull(actualItem.getComments()),
+                () -> assertEquals(2, actualItem.getComments().size()),
+                () -> assertEquals(item.getName(), actualItem.getName()),
+                () -> assertEquals(item.getDescription(), actualItem.getDescription()),
+                () -> assertEquals(item.getOwnerId(), actualItem.getOwnerId())
+        );
     }
 
     @Test
@@ -217,14 +206,13 @@ public class ItemServiceImplTest {
 
         final var actualItems = itemService.findAllOwnerItems(ownerId, 0, 10);
 
-        assertThat(actualItems)
-                .isNotNull()
-                .hasSize(1);
-
-        assertThat(actualItems.get(0))
-                .hasFieldOrPropertyWithValue("id", item.getId())
-                .hasFieldOrPropertyWithValue("name", item.getName())
-                .hasFieldOrPropertyWithValue("description", item.getDescription());
+        assertAll(
+                () -> assertNotNull(actualItems),
+                () -> assertEquals(1, actualItems.size()),
+                () -> assertEquals(item.getId(), actualItems.get(0).getId()),
+                () -> assertEquals(item.getName(), actualItems.get(0).getName()),
+                () -> assertEquals(item.getDescription(), actualItems.get(0).getDescription())
+        );
     }
 
     @Test
@@ -232,8 +220,7 @@ public class ItemServiceImplTest {
         final var exception = assertThrows(NotFoundException.class,
                 () -> itemService.findAllOwnerItems(99L, 0, 10));
 
-        assertThat(exception.getMessage())
-                .isEqualTo("User does not exist");
+        assertEquals("User does not exist", exception.getMessage());
     }
 
     @Test
@@ -252,27 +239,30 @@ public class ItemServiceImplTest {
 
         final var actualItems = itemService.search("found", 0, 10);
 
-        assertThat(actualItems)
-                .isNotNull()
-                .hasSize(2);
+        assertAll(
+                () -> assertNotNull(actualItems),
+                () -> assertEquals(2, actualItems.size())
+        );
     }
 
     @Test
     void search_whenTextIsNull_thenReturnedEmptyList() {
         final var actualItems = itemService.search(null, 0, 10);
 
-        assertThat(actualItems)
-                .isNotNull()
-                .isEmpty();
+        assertAll(
+                () -> assertNotNull(actualItems),
+                () -> assertEquals(0, actualItems.size())
+        );
     }
 
     @Test
     void search_whenTextIsBlank_thenReturnedEmptyList() {
         final var actualItems = itemService.search("", 0, 10);
 
-        assertThat(actualItems)
-                .isNotNull()
-                .isEmpty();
+        assertAll(
+                () -> assertNotNull(actualItems),
+                () -> assertEquals(0, actualItems.size())
+        );
     }
 
     @Test
@@ -291,9 +281,10 @@ public class ItemServiceImplTest {
 
         final var actualItems = itemService.search("   fOuN  ", 0, 10);
 
-        assertThat(actualItems)
-                .isNotNull()
-                .hasSize(2);
+        assertAll(
+                () -> assertNotNull(actualItems),
+                () -> assertEquals(2, actualItems.size())
+        );
     }
 
     @Test
@@ -303,11 +294,12 @@ public class ItemServiceImplTest {
 
         final var actualItem = itemService.save(ownerId, item);
 
-        assertThat(actualItem)
-                .isNotNull()
-                .hasFieldOrPropertyWithValue("name", item.getName())
-                .hasFieldOrPropertyWithValue("description", item.getDescription())
-                .hasFieldOrPropertyWithValue("requestId", null);
+        assertAll(
+                () -> assertNotNull(actualItem),
+                () -> assertEquals(item.getName(), actualItem.getName()),
+                () -> assertEquals(item.getDescription(), actualItem.getDescription()),
+                () -> assertNull(actualItem.getRequestId())
+        );
     }
 
     @Test
@@ -324,11 +316,12 @@ public class ItemServiceImplTest {
 
         final var actualItem = itemService.save(owner.getId(), item);
 
-        assertThat(actualItem)
-                .isNotNull()
-                .hasFieldOrPropertyWithValue("name", item.getName())
-                .hasFieldOrPropertyWithValue("description", item.getDescription())
-                .hasFieldOrPropertyWithValue("requestId", requestId);
+        assertAll(
+                () -> assertNotNull(actualItem),
+                () -> assertEquals(item.getName(), actualItem.getName()),
+                () -> assertEquals(item.getDescription(), actualItem.getDescription()),
+                () -> assertEquals(requestId, actualItem.getRequestId())
+        );
     }
 
     @Test
@@ -342,8 +335,7 @@ public class ItemServiceImplTest {
         final var exception = assertThrows(NotFoundException.class,
                 () -> itemService.save(owner.getId(), item));
 
-        assertThat(exception.getMessage())
-                .isEqualTo("Request not found");
+        assertEquals("Request not found", exception.getMessage());
     }
 
     @Test
@@ -372,9 +364,10 @@ public class ItemServiceImplTest {
 
         final var actualComment = itemService.addComment(user.getId(), item.getId(), comment);
 
-        assertThat(actualComment)
-                .isNotNull()
-                .hasFieldOrPropertyWithValue("text", comment.getText());
+        assertAll(
+                () -> assertNotNull(actualComment),
+                () -> assertEquals(comment.getText(), actualComment.getText())
+        );
     }
 
     @Test
@@ -404,8 +397,7 @@ public class ItemServiceImplTest {
         final var exception = assertThrows(NotFoundException.class,
                 () -> itemService.addComment(99L, item.getId(), comment));
 
-        assertThat(exception.getMessage())
-                .isEqualTo("User does not exist");
+        assertEquals("User does not exist", exception.getMessage());
     }
 
     @Test
@@ -422,8 +414,7 @@ public class ItemServiceImplTest {
         final var exception = assertThrows(NotFoundException.class,
                 () -> itemService.addComment(user.getId(), 99L, comment));
 
-        assertThat(exception.getMessage())
-                .isEqualTo("Item not found");
+        assertEquals("Item not found", exception.getMessage());
     }
 
     @Test
@@ -453,8 +444,7 @@ public class ItemServiceImplTest {
         final var exception = assertThrows(UnavailableException.class,
                 () -> itemService.addComment(user.getId(), item.getId(), comment));
 
-        assertThat(exception.getMessage())
-                .isEqualTo("You cannot comment on this item");
+        assertEquals("You cannot comment on this item", exception.getMessage());
     }
 
     @Test
@@ -474,11 +464,12 @@ public class ItemServiceImplTest {
 
         final var actualItem = itemService.update(item.getId(), userId, itemToUpdate);
 
-        assertThat(actualItem)
-                .isNotNull()
-                .hasFieldOrPropertyWithValue("name", itemToUpdate.getName())
-                .hasFieldOrPropertyWithValue("description", itemToUpdate.getDescription())
-                .hasFieldOrPropertyWithValue("available", itemToUpdate.getAvailable());
+        assertAll(
+                () -> assertNotNull(actualItem),
+                () -> assertEquals(itemToUpdate.getName(), actualItem.getName()),
+                () -> assertEquals(itemToUpdate.getDescription(), actualItem.getDescription()),
+                () -> assertEquals(itemToUpdate.getAvailable(), actualItem.getAvailable())
+        );
     }
 
     @Test
@@ -497,8 +488,7 @@ public class ItemServiceImplTest {
         final var exception = assertThrows(NotFoundException.class,
                 () -> itemService.update(item.getId(), 99L, itemToUpdate));
 
-        assertThat(exception.getMessage())
-                .isEqualTo("User does not exist");
+        assertEquals("User does not exist", exception.getMessage());
     }
 
     @Test
@@ -520,8 +510,7 @@ public class ItemServiceImplTest {
         final var exception = assertThrows(AccessDeniedException.class,
                 () -> itemService.update(item.getId(), user.getId(), itemToUpdate));
 
-        assertThat(exception.getMessage())
-                .isEqualTo("Access is denied");
+        assertEquals("Access is denied", exception.getMessage());
     }
 
     @Test
@@ -536,8 +525,7 @@ public class ItemServiceImplTest {
         final var exception = assertThrows(NotFoundException.class,
                 () -> itemService.update(99L, userId, itemToUpdate));
 
-        assertThat(exception.getMessage())
-                .isEqualTo("Item not found");
+        assertEquals("Item not found", exception.getMessage());
     }
 
     private User getUser() {

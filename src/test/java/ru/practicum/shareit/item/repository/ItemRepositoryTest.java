@@ -11,8 +11,7 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
 public class ItemRepositoryTest {
@@ -32,9 +31,11 @@ public class ItemRepositoryTest {
         final var pageable = PageRequest.of(0, 20, Sort.unsorted());
         final var actualItems = itemRepository.search("ances", pageable).getContent();
 
-        assertEquals(2, actualItems.size());
-        assertTrue(actualItems.get(0).getAvailable(), "item available is false");
-        assertTrue(actualItems.get(1).getAvailable(), "item available is false");
+        assertAll(
+                () -> assertEquals(2, actualItems.size()),
+                () -> assertTrue(actualItems.get(0).getAvailable(), "item available is false"),
+                () -> assertTrue(actualItems.get(1).getAvailable(), "item available is false")
+        );
     }
 
     @AfterEach
